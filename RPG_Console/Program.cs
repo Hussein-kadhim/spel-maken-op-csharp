@@ -8,6 +8,17 @@ class Program
 
     static async Task Main(string[] args)
     {
+        // Haal bij het opstarten de status op van de API
+        try
+        {
+            var status = await client.GetFromJsonAsync<StatusDto>("/api/game/status");
+            Console.WriteLine($"[Server status: {status?.Message}]");
+        }
+        catch
+        {
+            Console.WriteLine("[Server status: Offline / niet bereikbaar]");
+        }
+
         bool bezig = true;
 
         while (bezig)
@@ -19,15 +30,9 @@ class Program
             switch (keuze)
             {
                 case "1":
-                    NieuwSpel();
+                    await NieuwSpel();
                     break;
                 case "2":
-                    await ToonSpelInformatie();
-                    break;
-                case "3":
-                    await CheckStatus();
-                    break;
-                case "4":
                     bezig = false;
                     Console.WriteLine("\nBedankt voor het spelen! Tot ziens.");
                     break;
@@ -42,12 +47,10 @@ class Program
     {
         Console.WriteLine("\n=== Dungeon Crawler ===");
         Console.WriteLine("1. Nieuw spel");
-        Console.WriteLine("2. Spelinformatie bekijken (API)");
-        Console.WriteLine("3. API Status controleren");
-        Console.WriteLine("4. Afsluiten");
+        Console.WriteLine("2. Afsluiten");
     }
 
-    static void NieuwSpel()
+    static async Task NieuwSpel()
     {
         Console.Write("\nWat is je naam? ");
         string? naam = Console.ReadLine();
@@ -58,42 +61,27 @@ class Program
             return;
         }
 
-        Console.WriteLine($"Welkom {naam.Trim()}! Je avontuur in de kerker begint nu.");
-    }
+        Console.WriteLine($"\nWelkom, {naam.Trim()}!");
 
-    static async Task CheckStatus()
-    {
-        try
-        {
-            var status = await client.GetFromJsonAsync<StatusDto>("/api/game/status");
-            Console.WriteLine($"\n[API Response]: {status?.Message}");
-        }
-        catch
-        {
-            Console.WriteLine("\nFout: Kon geen verbinding maken met de API. Staat de backend wel aan?");
-        }
-    }
-
-    static async Task ToonSpelInformatie()
-    {
+        // Spelinformatie ophalen van de API en tonen
         try
         {
             var info = await client.GetFromJsonAsync<GameInfoDto>("/api/game/info");
             if (info != null)
             {
-                Console.WriteLine("\n--- SPELINFORMATIE ---");
-                Console.WriteLine($"Titel:         {info.Title}");
+                Console.WriteLine($"\n--- {info.Title.ToUpper()} ---");
                 Console.WriteLine($"Omschrijving:  {info.Description}");
                 Console.WriteLine($"Aantal levels: {info.TotalLevels}");
+                Console.WriteLine("Je reis door de donkere gangen begint nu...\n");
             }
         }
         catch
         {
-            Console.WriteLine("\nFout: Kon geen verbinding maken met de API. Staat de backend wel aan?");
+            Console.WriteLine("Kon spelinformatie niet ophalen van de API.\n");
         }
     }
 }
 
-// DTO's voor JSON communicatie
+// DTO's voor JSON communicatie met de API
 public record StatusDto(string Message);
 public record GameInfoDto(string Title, string Description, int TotalLevels);

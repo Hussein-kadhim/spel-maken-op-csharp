@@ -4,6 +4,11 @@ public record GameInfoDto(string Title, string Description, int TotalLevels);
 
 public class GameService
 {
+    public string GetStatus()
+    {
+        return "API werkt";
+    }
+
     public GameInfoDto GetInfo()
     {
         return new GameInfoDto(
